@@ -1,0 +1,218 @@
+/* ECB Financial Data Visualizer - Custom Theme */
+
+:root {
+    --ecb-blue: #003399;
+    --ecb-gold: #FFB81C;
+    --ecb-light-blue: #4A90E2;
+    --ecb-dark-blue: #002266;
+    --ecb-gray: #f8f9fa;
+}
+
+/* ECB Branding */
+.navbar-ecb {
+    background-color: var(--ecb-blue) !important;
+    border-bottom: 3px solid var(--ecb-gold);
+}
+
+.text-ecb-blue {
+    color: var(--ecb-blue) !important;
+}
+
+.text-ecb-gold {
+    color: var(--ecb-gold) !important;
+}
+
+.bg-ecb-blue {
+    background-color: var(--ecb-blue) !important;
+}
+
+.bg-ecb-gold {
+    background-color: var(--ecb-gold) !important;
+}
+
+/* Buttons */
+.btn-ecb {
+    background-color: var(--ecb-blue);
+    border-color: var(--ecb-blue);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-ecb:hover {
+    background-color: var(--ecb-light-blue);
+    border-color: var(--ecb-light-blue);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 51, 153, 0.3);
+}
+
+.btn-ecb:focus, .btn-ecb:active {
+    background-color: var(--ecb-dark-blue);
+    border-color: var(--ecb-dark-blue);
+    color: white;
+    box-shadow: 0 0 0 0.2rem rgba(0, 51, 153, 0.25);
+}
+
+/* Cards */
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-header-ecb {
+    background-color: var(--ecb-blue);
+    color: white;
+    border-bottom: 2px solid var(--ecb-gold);
+}
+
+/* Chart Containers */
+.chart-container {
+    height: 400px;
+    min-height: 400px;
+    position: relative;
+}
+
+@media (max-width: 768px) {
+    .chart-container {
+        height: 300px;
+        min-height: 300px;
+    }
+}
+
+/* Loading Animations */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Status Indicators */
+.status-online {
+    color: #28a745;
+}
+
+.status-offline {
+    color: #dc3545;
+}
+
+.status-warning {
+    color: #ffc107;
+}
+
+/* Alert Enhancements */
+.alert {
+    border-left: 4px solid;
+    border-radius: 0.5rem;
+}
+
+.alert-info {
+    border-left-color: var(--ecb-blue);
+}
+
+.alert-success {
+    border-left-color: #28a745;
+}
+
+.alert-warning {
+    border-left-color: #ffc107;
+}
+
+.alert-danger {
+    border-left-color: #dc3545;
+}
+
+/* Footer */
+footer {
+    border-top: 1px solid #e9ecef;
+    background-color: var(--ecb-gray) !important;
+}
+
+/* Navigation Enhancements */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.navbar-text {
+    font-weight: 500;
+}
+
+/* Financial Data Styling */
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ecb-blue);
+}
+
+.metric-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.change-positive {
+    color: #28a745;
+}
+
+.change-negative {
+    color: #dc3545;
+}
+
+/* Professional Charts */
+.plotly-graph-div {
+    border-radius: 0.5rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+    
+    .metric-value {
+        font-size: 1.2rem;
+    }
+    
+    .card-header h5 {
+        font-size: 1rem;
+    }
+}
+
+/* Interactive Elements */
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 51, 153, 0.25);
+}
+
+/* Workshop-specific Styling */
+.workshop-highlight {
+    border: 2px solid var(--ecb-gold);
+    background-color: rgba(255, 184, 28, 0.1);
+}
+
+.code-demo {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}

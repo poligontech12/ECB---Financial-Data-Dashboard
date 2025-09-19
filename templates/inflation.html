@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}Inflation - ECB Financial Data Visualizer{% endblock %}
+{% block page_title %}Inflation Analysis{% endblock %}
+
+{% block page_actions %}
+<button class="btn btn-sm btn-success me-2" onclick="refreshData()">
+    <i class="fas fa-sync-alt me-1"></i>
+    Refresh
+</button>
+<button class="btn btn-sm btn-outline-secondary me-3" onclick="exportData()">
+    <i class="fas fa-download me-1"></i>
+    Export
+</button>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Inflation</li>
+{% endblock %}
+
+{% block content %}
+
+<!-- Key Metrics -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="text-muted mb-2">Current Rate</h6>
+                    <h3 class="text-success mb-0" id="currentRate">Loading...</h3>
+                    <small class="text-muted">Annual inflation %</small>
+                </div>
+                <div class="text-success">
+                    <i class="fas fa-chart-line fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="text-muted mb-2">ECB Target</h6>
+                    <h3 class="text-primary mb-0">2.0%</h3>
+                    <small class="text-muted" id="targetDeviation">Target deviation</small>
+                </div>
+                <div class="text-primary">
+                    <i class="fas fa-bullseye fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="text-muted mb-2">Data Points</h6>
+                    <h3 class="text-info mb-0" id="dataPoints">Loading...</h3>
+                    <small class="text-muted">Available observations</small>
+                </div>
+                <div class="text-info">
+                    <i class="fas fa-database fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="text-muted mb-2">Last Updated</h6>
+                    <h3 class="text-warning mb-0" id="lastUpdated">Loading...</h3>
+                    <small class="text-muted">Data timestamp</small>
+                </div>
+                <div class="text-warning">
+                    <i class="fas fa-clock fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ECB Target Status (removed as requested) -->
+
+<!-- Interactive Chart -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">
+                    <i class="fas fa-chart-area me-2"></i>
+                    HICP Inflation Rate Chart
+                </h5>
+                <div></div>
+            </div>
+            <div id="inflationChart" style="width: 100%; position: relative;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Sections -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h6 class="chart-title">
+                    <i class="fas fa-analytics me-2"></i>
+                    Inflation Analysis
+                </h6>
+            </div>
+            <div id="inflationAnalysis">
+                <div class="d-flex justify-content-center align-items-center" style="height: 250px;">
+                    <div class="text-center">
+                        <div class="spinner-border text-info" role="status"></div>
+                        <p class="mt-2 text-muted">Analyzing inflation trends...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h6 class="chart-title">
+                    <i class="fas fa-table me-2"></i>
+                    Historical Data
+                </h6>
+            </div>
+            <div id="historicalData">
+                <div class="d-flex justify-content-center align-items-center" style="height: 250px;">
+                    <div class="text-center">
+                        <div class="spinner-border text-success" role="status"></div>
+                        <p class="mt-2 text-muted">Loading historical data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+console.log('📊 HICP Inflation Analysis Page Loading');
+
+let currentChartData = null;
+
+// Load inflation data and chart
+async function loadInflationData() {
+    try {
+    showChartLoading('inflationChart', 'Loading HICP inflation data...');
+        
+        const response = await fetch('/api/inflation');
+        const data = await response.json();
+        
+        if (!data.success) {
+            document.getElementById('inflationChart').innerHTML = 
+                `<div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ${data.error || 'No inflation data available'}
+                    <br><small class="text-muted">${data.message || 'Try refreshing the data'}</small>
+                </div>`;
+            return;
+        }
+        
+        // Store chart data
+        currentChartData = data;
+        
+    // Clear loading indicator before rendering
+    const chartEl = document.getElementById('inflationChart');
+    if (chartEl) chartEl.innerHTML = '';
+
+    // Render chart with dashboard-like sizing
+    await Plotly.newPlot(chartEl, data.chart.data, {
+            ...data.chart.layout,
+            showlegend: false,
+            title: '',
+            autosize: true,
+            height: 300,
+            margin: { l: 50, r: 40, t: 20, b: 40 }
+        }, {
+            responsive: true,
+            displayModeBar: true,
+            scrollZoom: true,
+            doubleClick: 'reset'
+        });
+
+        // Post-render resizes to settle width after layout transitions
+    try { if (chartEl) Plotly.Plots.resize(chartEl); } catch(_) {}
+    setTimeout(() => { try { if (chartEl) Plotly.Plots.resize(chartEl); } catch(_) {} }, 100);
+    setTimeout(() => { try { if (chartEl) Plotly.Plots.resize(chartEl); } catch(_) {} }, 350);
+        
+        // Update metrics and analysis
+        updateMetrics(data);
+        updateInflationAnalysis(data);
+        updateHistoricalData(data);
+        
+        console.log('✅ Inflation data loaded successfully');
+        
+    } catch (error) {
+        console.error('Error loading inflation data:', error);
+        document.getElementById('inflationChart').innerHTML = 
+            `<div class="alert alert-danger text-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Error loading inflation data: ${error.message}
+            </div>`;
+    }
+}
+
+// Update key metrics
+function updateMetrics(data) {
+    // Current rate
+    document.getElementById('currentRate').textContent = 
+        data.latest_rate ? `${data.latest_rate.toFixed(1)}%` : 'N/A';
+    
+    // Target deviation
+    const deviationElement = document.getElementById('targetDeviation');
+    if (data.target_deviation !== undefined) {
+        const deviation = data.target_deviation;
+        const deviationText = deviation > 0 ? `+${deviation.toFixed(1)}%` : `${deviation.toFixed(1)}%`;
+        const deviationClass = Math.abs(deviation) > 0.5 ? 'text-warning' : 'text-success';
+        
+        deviationElement.innerHTML = `<span class="${deviationClass}">${deviationText} from target</span>`;
+    } else {
+        deviationElement.textContent = 'Target deviation';
+    }
+    
+    // Data points
+    document.getElementById('dataPoints').textContent = data.data_points || '0';
+    
+    // Last updated
+    const lastUpdated = data.last_updated ? 
+        new Date(data.last_updated).toLocaleDateString() : 'N/A';
+    document.getElementById('lastUpdated').textContent = lastUpdated;
+}
+
+// (Target status removed)
+
+// Update inflation analysis
+function updateInflationAnalysis(data) {
+    const analysisHtml = `
+        <div class="p-3">
+            <h6 class="text-info mb-3">Inflation Metrics</h6>
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="bg-light p-3 rounded">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">Current Rate</small>
+                                <div class="fw-bold text-success">${data.latest_rate?.toFixed(1) || 'N/A'}%</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">ECB Target</small>
+                                <div class="fw-bold text-primary">2.0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="border-start border-info border-3 ps-3">
+                        <small class="text-muted">Target Deviation</small>
+                        <div class="fw-bold ${Math.abs(data.target_deviation || 0) > 0.5 ? 'text-warning' : 'text-success'}">
+                            ${data.target_deviation !== undefined ? 
+                                (data.target_deviation > 0 ? '+' : '') + data.target_deviation.toFixed(1) + '% points' : 
+                                'N/A'}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 mt-3">
+                    <small class="text-muted">Series Information</small>
+                    <div class="fw-bold">${data.series_title || 'HICP Inflation Rate'}</div>
+                    <small class="text-muted">${data.unit || 'Annual percentage rate'}</small>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('inflationAnalysis').innerHTML = analysisHtml;
+}
+
+// Update historical data
+function updateHistoricalData(data) {
+    const historicalHtml = `
+        <div class="p-3">
+            <h6 class="text-success mb-3">Data Summary</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Latest Rate</td>
+                            <td class="fw-bold">${data.latest_rate?.toFixed(1) || 'N/A'}%</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">ECB Target</td>
+                            <td class="fw-bold text-primary">2.0%</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Deviation</td>
+                            <td class="fw-bold ${Math.abs(data.target_deviation || 0) > 0.5 ? 'text-warning' : 'text-success'}">
+                                ${data.target_deviation !== undefined ? 
+                                    (data.target_deviation > 0 ? '+' : '') + data.target_deviation.toFixed(1) + '% pts' : 
+                                    'N/A'}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Total Data Points</td>
+                            <td class="fw-bold">${data.data_points || 0}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Data Source</td>
+                            <td class="fw-bold">ECB HICP</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Update Frequency</td>
+                            <td class="fw-bold">Monthly</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Last Refresh</td>
+                            <td class="fw-bold">${data.last_updated ? new Date(data.last_updated).toLocaleString() : 'N/A'}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('historicalData').innerHTML = historicalHtml;
+}
+
+// Show loading state for charts
+function showChartLoading(chartId, message = 'Loading...') {
+    const container = document.getElementById(chartId);
+    container.innerHTML = `
+        <div class="text-center p-5">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">${message}</span>
+            </div>
+            <p class="mt-3 text-muted">${message}</p>
+        </div>
+    `;
+}
+
+// Set time range for chart
+function setTimeRange(range) {
+    if (!currentChartData) return;
+    
+    // Update button states
+    document.querySelectorAll('[onclick*="setTimeRange"]').forEach(btn => {
+        btn.className = 'btn btn-sm btn-outline-success me-2';
+    });
+    
+    event.target.className = 'btn btn-sm btn-success me-2';
+    
+    showAlert(`Time range set to: ${range}`, 'info');
+}
+
+// Refresh data
+async function refreshData() {
+    try {
+        showAlert('Refreshing HICP inflation data...', 'info');
+        
+        const refreshResponse = await fetch('/api/refresh/inflation', { method: 'POST' });
+        const refreshData = await refreshResponse.json();
+        
+        if (refreshData.success) {
+            showAlert('✅ Inflation data refreshed successfully!', 'success');
+            
+            setTimeout(() => {
+                loadInflationData();
+            }, 1000);
+        } else {
+            showAlert(`❌ Failed to refresh data: ${refreshData.error}`, 'danger');
+            loadInflationData();
+        }
+        
+    } catch (error) {
+        console.error('Refresh failed:', error);
+        showAlert(`❌ Refresh failed: ${error.message}`, 'danger');
+    }
+}
+
+// Export data
+function exportData() {
+    if (!currentChartData) {
+        showAlert('No data available to export', 'warning');
+        return;
+    }
+    
+    showAlert('Export functionality coming soon...', 'info');
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📊 Initializing HICP Inflation Analysis page...');
+    
+    setTimeout(() => {
+        loadInflationData();
+    }, 500);
+    
+    console.log('✅ HICP Inflation Analysis page initialization complete');
+});
+
+console.log('📊 HICP Inflation Analysis Page Loaded');
+</script>
+{% endblock %}

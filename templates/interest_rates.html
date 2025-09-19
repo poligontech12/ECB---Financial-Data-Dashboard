@@ -1,0 +1,476 @@
+{% extends "base.html" %}
+
+{% block title %}Interest Rates - ECB Financial Data Visualizer{% endblock %}
+{% block page_title %}ECB Interest Rates{% endblock %}
+
+{% block page_actions %}
+<button class="btn btn-sm btn-warning me-2" onclick="refreshData()">
+    <i class="fas fa-sync-alt me-1"></i>
+    Refresh
+</button>
+<button class="btn btn-sm btn-outline-secondary me-3" onclick="exportData()">
+    <i class="fas fa-download me-1"></i>
+    Export
+</button>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Interest Rates</li>
+{% endblock %}
+
+{% block content %}
+
+<!-- Key Metrics -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="text-muted mb-2">Current Rate</h6>
+                    <h3 class="text-warning mb-0" id="currentRate">Loading...</h3>
+                    <small class="text-muted">ECB Rate %</small>
+                </div>
+                <div class="text-warning">
+                    <i class="fas fa-percentage fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="text-muted mb-2">Rate Change</h6>
+                    <h3 class="mb-0" id="rateChange">Loading...</h3>
+                    <small class="text-muted">Since last decision</small>
+                </div>
+                <div class="text-info">
+                    <i class="fas fa-chart-line fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="text-muted mb-2">Data Points</h6>
+                    <h3 class="text-success mb-0" id="dataPoints">Loading...</h3>
+                    <small class="text-muted">Available observations</small>
+                </div>
+                <div class="text-success">
+                    <i class="fas fa-database fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="text-muted mb-2">Last Updated</h6>
+                    <h3 class="text-primary mb-0" id="lastUpdated">Loading...</h3>
+                    <small class="text-muted">Data timestamp</small>
+                </div>
+                <div class="text-primary">
+                    <i class="fas fa-clock fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Interactive Chart -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">
+                    <i class="fas fa-chart-area me-2"></i>
+                    ECB Interest Rate Chart
+                </h5>
+                <div></div>
+            </div>
+            <div id="interestRateChart" style="width: 100%; position: relative;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Sections -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h6 class="chart-title">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Rate Analysis
+                </h6>
+            </div>
+            <div id="rateAnalysis">
+                <div class="p-3">
+                    <h6 class="text-info mb-3">Policy Summary</h6>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="bg-light p-3 rounded">
+                                <div class="fw-bold text-warning">Supportive Policy</div>
+                                <p class="text-muted mb-2">Low rates providing monetary stimulus</p>
+                                <small class="text-muted">Current deposit facility rate: <span id="policyCurrentRate">--</span>%</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h6 class="chart-title">
+                    <i class="fas fa-history me-2"></i>
+                    Policy History
+                </h6>
+            </div>
+            <div id="policyHistory">
+                <div class="d-flex justify-content-center align-items-center" style="height: 250px;">
+                    <div class="text-center">
+                        <div class="spinner-border text-success" role="status"></div>
+                        <p class="mt-2 text-muted">Loading policy history...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+console.log('📈 ECB Interest Rates Page Loading');
+
+let currentChartData = null;
+
+// Load interest rate data and chart
+async function loadInterestRateData() {
+    try {
+        showChartLoading('interestRateChart', 'Loading ECB interest rate data...');
+        
+        const response = await fetch('/api/interest-rates');
+        const data = await response.json();
+        
+        if (!data.success) {
+            document.getElementById('interestRateChart').innerHTML = 
+                `<div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ${data.error || 'No interest rate data available'}
+                    <br><small class="text-muted">${data.message || 'Try refreshing the data'}</small>
+                </div>`;
+            return;
+        }
+        
+        // Store chart data
+        currentChartData = data;
+        
+        // Clear loading indicator before rendering
+        const chartEl = document.getElementById('interestRateChart');
+        if (chartEl) chartEl.innerHTML = '';
+
+        // Render chart with dashboard-like sizing
+        await Plotly.newPlot(chartEl, data.chart.data, {
+            ...data.chart.layout,
+            showlegend: false,
+            title: '',
+            autosize: true,
+            height: 300,
+            margin: { l: 50, r: 40, t: 20, b: 40 }
+        }, {
+            responsive: true,
+            displayModeBar: true,
+            scrollZoom: true,
+            doubleClick: 'reset'
+        });
+
+        // Post-render resizes to settle width after layout transitions
+        try { if (chartEl) Plotly.Plots.resize(chartEl); } catch(_) {}
+        setTimeout(() => { try { if (chartEl) Plotly.Plots.resize(chartEl); } catch(_) {} }, 100);
+        setTimeout(() => { try { if (chartEl) Plotly.Plots.resize(chartEl); } catch(_) {} }, 350);
+        
+        // Update metrics and analysis
+        updateMetrics(data);
+        updateRateAnalysis(data);
+        updatePolicyHistory(data);
+        
+        console.log('✅ Interest rate data loaded successfully');
+        
+    } catch (error) {
+        console.error('Error loading interest rate data:', error);
+        document.getElementById('interestRateChart').innerHTML = 
+            `<div class="alert alert-danger text-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Error loading interest rate data: ${error.message}
+            </div>`;
+    }
+}
+
+// Update key metrics
+function updateMetrics(data) {
+    // Current rate
+    document.getElementById('currentRate').textContent = 
+        data.latest_rate !== null ? `${data.latest_rate.toFixed(2)}%` : 'N/A';
+    
+    // Rate change since last distinct change (not just the immediate previous point)
+    const changeElement = document.getElementById('rateChange');
+    try {
+        const ys = data?.chart?.data?.[0]?.y || [];
+        if (Array.isArray(ys) && ys.length >= 2) {
+            const lastRaw = ys[ys.length - 1];
+            const last = parseFloat(lastRaw);
+            if (isFinite(last)) {
+                // Walk backwards to find the last value that is different from the current last
+                let prevDistinct = null;
+                for (let i = ys.length - 2; i >= 0; i--) {
+                    const v = parseFloat(ys[i]);
+                    if (isFinite(v) && v !== last) {
+                        prevDistinct = v;
+                        break;
+                    }
+                }
+                if (prevDistinct !== null) {
+                    const diff = last - prevDistinct;
+                    const magnitude = Math.abs(diff);
+                    changeElement.textContent = `${magnitude.toFixed(2)}%`;
+                    // Keep directional coloring: hikes red, cuts green; value shown as absolute magnitude
+                    changeElement.className = `${diff > 0 ? 'text-danger' : diff < 0 ? 'text-success' : 'text-muted'} mb-0`;
+                } else {
+                    // No prior distinct change found
+                    changeElement.textContent = '0.00%';
+                    changeElement.className = 'text-muted mb-0';
+                }
+            } else {
+                changeElement.textContent = 'N/A';
+                changeElement.className = 'text-muted mb-0';
+            }
+        } else {
+            changeElement.textContent = 'N/A';
+            changeElement.className = 'text-muted mb-0';
+        }
+    } catch (_) {
+        changeElement.textContent = 'N/A';
+        changeElement.className = 'text-muted mb-0';
+    }
+    
+    // Data points
+    document.getElementById('dataPoints').textContent = data.data_points || '0';
+    
+    // Last updated
+    const lastUpdated = data.last_updated ? 
+        new Date(data.last_updated).toLocaleDateString() : 'N/A';
+    document.getElementById('lastUpdated').textContent = lastUpdated;
+}
+
+// Update policy status
+function updatePolicyStatus(data) {
+    const currentRate = data.latest_rate;
+    
+    let statusClass, statusIcon, statusText, statusDescription;
+    
+    if (currentRate === null || currentRate === undefined) {
+        statusClass = 'text-muted';
+        statusIcon = 'fas fa-question-circle';
+        statusText = 'Data Unavailable';
+        statusDescription = 'No current interest rate data available';
+    } else if (currentRate <= 0) {
+        statusClass = 'text-info';
+        statusIcon = 'fas fa-arrow-down';
+        statusText = 'Accommodative Policy';
+        statusDescription = 'Very low or negative rates supporting economic growth';
+    } else if (currentRate <= 2.0) {
+        statusClass = 'text-warning';
+        statusIcon = 'fas fa-balance-scale';
+        statusText = 'Supportive Policy';
+        statusDescription = 'Low rates providing monetary stimulus';
+    } else if (currentRate <= 4.0) {
+        statusClass = 'text-primary';
+        statusIcon = 'fas fa-equals';
+        statusText = 'Neutral Policy';
+        statusDescription = 'Balanced monetary policy stance';
+    } else {
+        statusClass = 'text-danger';
+        statusIcon = 'fas fa-arrow-up';
+        statusText = 'Restrictive Policy';
+        statusDescription = 'Higher rates to control inflation';
+    }
+    
+    const statusHtml = `
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <i class="${statusIcon} fa-3x ${statusClass}"></i>
+            </div>
+            <div class="col">
+                <h5 class="${statusClass} mb-1">${statusText}</h5>
+                <p class="text-muted mb-0">${statusDescription}</p>
+                ${currentRate !== null ? `<small class="text-muted">Current deposit facility rate: ${currentRate.toFixed(2)}%</small>` : ''}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('policyStatus').innerHTML = statusHtml;
+}
+
+// Update rate analysis
+function updateRateAnalysis(data) {
+    const analysisHtml = `
+        <div class="p-3">
+            <h6 class="text-info mb-3">Rate Metrics</h6>
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="bg-light p-3 rounded">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">Current Rate</small>
+                                <div class="fw-bold text-warning">${data.latest_rate?.toFixed(2) || 'N/A'}%</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Rate Type</small>
+                                <div class="fw-bold text-primary">Deposit Facility</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="bg-light p-3 rounded">
+                        <div class="fw-bold text-warning">Supportive Policy</div>
+                        <p class="text-muted mb-2">Low rates providing monetary stimulus</p>
+                        <small class="text-muted">Current deposit facility rate: ${data.latest_rate?.toFixed(2) || 'N/A'}%</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('rateAnalysis').innerHTML = analysisHtml;
+}
+
+// Update policy history
+function updatePolicyHistory(data) {
+    const historyHtml = `
+        <div class="p-3">
+            <h6 class="text-success mb-3">Policy Information</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Current Rate</td>
+                            <td class="fw-bold">${data.latest_rate?.toFixed(2) || 'N/A'}%</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Rate Type</td>
+                            <td class="fw-bold">Deposit Facility Rate</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Total Data Points</td>
+                            <td class="fw-bold">${data.data_points || 0}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Data Source</td>
+                            <td class="fw-bold">ECB SDW</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Update Frequency</td>
+                            <td class="fw-bold">Daily</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Last Refresh</td>
+                            <td class="fw-bold">${data.last_updated ? new Date(data.last_updated).toLocaleString() : 'N/A'}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('policyHistory').innerHTML = historyHtml;
+}
+
+// Show loading state for charts
+function showChartLoading(chartId, message = 'Loading...') {
+    const container = document.getElementById(chartId);
+    container.innerHTML = `
+        <div class="text-center p-5">
+            <div class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">${message}</span>
+            </div>
+            <p class="mt-3 text-muted">${message}</p>
+        </div>
+    `;
+}
+
+// Set time range for chart
+function setTimeRange(range) {
+    if (!currentChartData) return;
+    
+    // Update button states
+    document.querySelectorAll('[onclick*="setTimeRange"]').forEach(btn => {
+        btn.className = 'btn btn-sm btn-outline-warning me-2';
+    });
+    
+    event.target.className = 'btn btn-sm btn-warning me-2';
+    
+    showAlert(`Time range set to: ${range}`, 'info');
+}
+
+// Refresh data
+async function refreshData() {
+    try {
+        showAlert('Refreshing ECB interest rate data...', 'info');
+        
+        const refreshResponse = await fetch('/api/refresh/interest-rates', { method: 'POST' });
+        const refreshData = await refreshResponse.json();
+        
+        if (refreshData.success) {
+            showAlert('✅ Interest rate data refreshed successfully!', 'success');
+            
+            setTimeout(() => {
+                loadInterestRateData();
+            }, 1000);
+        } else {
+            showAlert(`❌ Failed to refresh data: ${refreshData.error}`, 'danger');
+            loadInterestRateData();
+        }
+        
+    } catch (error) {
+        console.error('Refresh failed:', error);
+        showAlert(`❌ Refresh failed: ${error.message}`, 'danger');
+    }
+}
+
+// Export data
+function exportData() {
+    if (!currentChartData) {
+        showAlert('No data available to export', 'warning');
+        return;
+    }
+    
+    showAlert('Export functionality coming soon...', 'info');
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📈 Initializing ECB Interest Rates page...');
+    
+    setTimeout(() => {
+        loadInterestRateData();
+    }, 500);
+    
+    console.log('✅ ECB Interest Rates page initialization complete');
+});
+
+console.log('📈 ECB Interest Rates Page Loaded');
+</script>
+{% endblock %}

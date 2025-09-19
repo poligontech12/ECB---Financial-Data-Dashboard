@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ECB Financial Data Visualizer{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block page_actions %}
+<button class="btn btn-sm btn-outline-primary me-3" onclick="refreshAllData()" title="Refresh All Data">
+    <i class="fas fa-sync-alt me-1"></i>
+    Refresh
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- System Information - Compact -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+            <div class="card-body py-2">
+                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        <h6 class="mb-0 text-muted fw-normal">System Status</h6>
+                    </div>
+                    <div class="d-flex gap-4 flex-wrap">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-server text-primary me-2"></i>
+                            <small class="text-muted me-1">Data Service:</small>
+                            <small id="dataServiceStatus" class="fw-medium">Checking...</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-cloud text-info me-2"></i>
+                            <small class="text-muted me-1">ECB API:</small>
+                            <small id="ecbApiStatus" class="fw-medium">Checking...</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-database text-success me-2"></i>
+                            <small class="text-muted me-1">Database:</small>
+                            <small id="databaseStatus" class="fw-medium">Checking...</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-chart-area text-warning me-2"></i>
+                            <small class="text-muted me-1">Charts:</small>
+                            <small id="chartsStatus" class="fw-medium">Ready</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Summary Cards -->
+<div class="row g-3 mb-3">
+    <div class="col-lg-3 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="text-muted mb-2">EUR/USD Rate</h6>
+                    <h3 class="text-primary mb-0" id="eurUsdRate">Loading...</h3>
+                    <small class="text-muted" id="eurUsdChange">---</small>
+                </div>
+                <div class="text-primary">
+                    <i class="fas fa-exchange-alt fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="text-muted mb-2">Inflation Rate</h6>
+                    <h3 class="text-success mb-0" id="inflationRate">Loading...</h3>
+                    <small class="text-muted" id="inflationTarget">Target: 2.0%</small>
+                </div>
+                <div class="text-success">
+                    <i class="fas fa-chart-line fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="text-muted mb-2">ECB Rate</h6>
+                    <h3 class="text-warning mb-0" id="ecbRate">Loading...</h3>
+                    <small class="text-muted" id="ecbRateChange">---</small>
+                </div>
+                <div class="text-warning">
+                    <i class="fas fa-percentage fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="text-muted mb-2">Data Status</h6>
+                    <h3 class="text-info mb-0" id="dataStatus">Checking...</h3>
+                    <small class="text-muted" id="lastUpdate">---</small>
+                </div>
+                <div class="text-info">
+                    <i class="fas fa-database fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overview Charts -->
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">EUR/USD Exchange Rate Overview</h5>
+                <button class="btn-refresh" onclick="refreshChart('exchange-rates')">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Refresh
+                </button>
+            </div>
+            <div id="exchange-overview-chart" style="width: 100%; position: relative;">
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">Inflation Rate Overview</h5>
+                <button class="btn-refresh" onclick="refreshChart('inflation')">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Refresh
+                </button>
+            </div>
+            <div id="inflation-overview-chart" style="width: 100%; position: relative;">
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h5 class="chart-title">ECB Interest Rates Overview</h5>
+                <button class="btn-refresh" onclick="refreshChart('interest-rates')">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Refresh
+                </button>
+            </div>
+            <div id="interest-overview-chart" style="width: 100%; position: relative;">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Dashboard JavaScript - Modern UI Implementation
+console.log('🏛️ ECB Financial Data Visualizer - Modern Dashboard Loading');
+
+// Load overview chart
+async function loadOverviewChart(dataType, chartId) {
+    try {
+        console.log(`🔄 Loading overview chart: ${dataType} -> ${chartId}`);
+        showChartLoading(chartId, `Loading ${dataType} overview...`);
+        
+        const response = await fetch(`/api/${dataType}`);
+        console.log(`📡 API Response status: ${response.status}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log(`📊 API Response success:`, data.success);
+        
+        if (!data.success) {
+            console.error(`❌ API returned error:`, data);
+            hideChartLoading(chartId); // Clear loading state
+            document.getElementById(chartId).innerHTML = 
+                `<div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ${data.error || 'No data available'}
+                    <br><small class="text-muted">${data.message || 'Try refreshing the data'}</small>
+                </div>`;
+            return;
+        }
+        
+        // Use the full chart layout but adjust for dashboard display
+        // Set reasonable heights for dashboard while maintaining full functionality
+        const dashboardLayout = {
+            ...data.chart.layout,
+            showlegend: false, // Hide legend for dashboard to save space
+            title: '', // Remove chart title to prevent overlap with range selectors
+            autosize: true,
+            // Set consistent, compact height for dashboard
+            height: 300
+        };
+        
+        const fullConfig = {
+            responsive: true,
+            displayModeBar: true,  // Enable toolbar
+            scrollZoom: true,      // Enable scroll zoom
+            doubleClick: 'reset'   // Enable double-click reset
+        };
+        
+        console.log(`🎨 Creating full Plotly chart for ${chartId}...`);
+        
+        // Clear loading state first
+        hideChartLoading(chartId);
+        
+        // Use the full layout with container-appropriate height
+        await Plotly.newPlot(chartId, data.chart.data, dashboardLayout, fullConfig);
+        
+        console.log(`✅ Overview chart loaded successfully: ${dataType}`);
+        
+    } catch (error) {
+        console.error(`❌ Error loading overview chart ${dataType}:`, error);
+        hideChartLoading(chartId); // Clear loading state
+        document.getElementById(chartId).innerHTML = 
+            `<div class="alert alert-danger text-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Error loading ${dataType} overview: ${error.message}
+                <br><small class="text-muted">Check browser console for details</small>
+            </div>`;
+    }
+}
+
+// Show loading state for charts
+function showChartLoading(chartId, message = 'Loading...') {
+    const container = document.getElementById(chartId);
+    container.innerHTML = `
+        <div class="text-center p-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">${message}</span>
+            </div>
+            <p class="mt-2 text-muted">${message}</p>
+        </div>
+    `;
+}
+
+// Hide loading state for charts
+function hideChartLoading(chartId) {
+    const container = document.getElementById(chartId);
+    container.innerHTML = ''; // Clear any existing content
+}
+
+// Update summary cards
+async function updateSummaryCards() {
+    try {
+        // Update EUR/USD rate
+        const eurUsdResponse = await fetch('/api/exchange-rates');
+        const eurUsdData = await eurUsdResponse.json();
+        
+        if (eurUsdData.success) {
+            document.getElementById('eurUsdRate').textContent = eurUsdData.latest_rate?.toFixed(4) || 'N/A';
+            document.getElementById('eurUsdChange').textContent = `${eurUsdData.data_points || 0} data points`;
+        }
+        
+        // Update inflation rate
+        const inflationResponse = await fetch('/api/inflation');
+        const inflationData = await inflationResponse.json();
+        
+        if (inflationData.success) {
+            document.getElementById('inflationRate').textContent = `${inflationData.latest_rate?.toFixed(1) || 'N/A'}%`;
+            const deviation = inflationData.target_deviation;
+            if (deviation !== undefined) {
+                const deviationText = deviation > 0 ? `+${deviation.toFixed(1)}%` : `${deviation.toFixed(1)}%`;
+                const deviationClass = deviation > 0 ? 'text-warning' : 'text-success';
+                document.getElementById('inflationTarget').innerHTML = 
+                    `Target: 2.0% <span class="${deviationClass}">(${deviationText})</span>`;
+            }
+        }
+        
+        // Update ECB rate
+        const ratesResponse = await fetch('/api/interest-rates');
+        const ratesData = await ratesResponse.json();
+        
+        if (ratesData.success) {
+            document.getElementById('ecbRate').textContent = `${ratesData.latest_rate?.toFixed(2) || 'N/A'}%`;
+            document.getElementById('ecbRateChange').textContent = `${ratesData.data_points || 0} data points`;
+        }
+        
+        // Update data status
+        document.getElementById('dataStatus').textContent = 'Online';
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+        
+    } catch (error) {
+        console.error('Error updating summary cards:', error);
+        document.getElementById('dataStatus').textContent = 'Error';
+    }
+}
+
+// Update system status
+async function updateSystemStatus() {
+    try {
+        const response = await fetch('/api/test');
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.services) {
+            const services = data.services;
+            
+            document.getElementById('dataServiceStatus').innerHTML = 
+                services.data_service ? '<span class="text-success">Online</span>' : '<span class="text-danger">Offline</span>';
+            
+            document.getElementById('ecbApiStatus').innerHTML = 
+                services.api_connection ? '<span class="text-success">Connected</span>' : '<span class="text-danger">Disconnected</span>';
+            
+            document.getElementById('databaseStatus').innerHTML = 
+                services.database ? '<span class="text-success">Connected</span>' : '<span class="text-danger">Error</span>';
+        }
+        
+    } catch (error) {
+        console.error('Error updating system status:', error);
+        document.getElementById('dataServiceStatus').innerHTML = '<span class="text-danger">Error</span>';
+        document.getElementById('ecbApiStatus').innerHTML = '<span class="text-danger">Error</span>';
+        document.getElementById('databaseStatus').innerHTML = '<span class="text-danger">Error</span>';
+    }
+}
+
+// Refresh individual chart
+async function refreshChart(dataType) {
+    try {
+        showAlert(`Refreshing ${dataType} data...`, 'info');
+        
+        // Show loading on appropriate chart
+        const chartId = getOverviewChartId(dataType);
+        showChartLoading(chartId, `Refreshing ${dataType}...`);
+        
+        // Refresh data
+        const refreshResponse = await fetch(`/api/refresh/${dataType}`, { method: 'POST' });
+        const refreshData = await refreshResponse.json();
+        
+        if (refreshData.success) {
+            showAlert(`${dataType} data refreshed successfully!`, 'success');
+            
+            // Reload chart and summary cards
+            setTimeout(() => {
+                loadOverviewChart(dataType, chartId);
+                updateSummaryCards();
+            }, 1000);
+        } else {
+            showAlert(`❌ Failed to refresh ${dataType}: ${refreshData.error}`, 'danger');
+            // Still try to load existing data
+            loadOverviewChart(dataType, chartId);
+        }
+        
+    } catch (error) {
+        console.error(`Refresh failed for ${dataType}:`, error);
+        showAlert(`❌ Refresh failed: ${error.message}`, 'danger');
+    }
+}
+
+// Get overview chart ID
+function getOverviewChartId(dataType) {
+    const mapping = {
+        'exchange-rates': 'exchange-overview-chart',
+        'inflation': 'inflation-overview-chart',
+        'interest-rates': 'interest-overview-chart'
+    };
+    return mapping[dataType] || `${dataType}-overview-chart`;
+}
+
+// Refresh all data
+async function refreshAllData() {
+    try {
+        showAlert('Refreshing all data...', 'info');
+        
+        // Show loading on all charts
+        showChartLoading('exchange-overview-chart', 'Refreshing exchange rates...');
+        showChartLoading('inflation-overview-chart', 'Refreshing inflation data...');
+        showChartLoading('interest-overview-chart', 'Refreshing interest rates...');
+        
+        const response = await fetch('/api/refresh-all', { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(`✅ Data refresh completed! ${data.successful}/${data.total_series} series updated successfully.`, 'success');
+        } else {
+            showAlert(`⚠️ Partial refresh: ${data.successful || 0}/${data.total_series || 0} series updated.`, 'warning');
+        }
+        
+        // Reload all charts after a brief delay
+        setTimeout(() => {
+            loadOverviewChart('exchange-rates', 'exchange-overview-chart');
+            loadOverviewChart('inflation', 'inflation-overview-chart');
+            loadOverviewChart('interest-rates', 'interest-overview-chart');
+            updateSummaryCards();
+            updateSystemStatus();
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Refresh all failed:', error);
+        showAlert(`❌ Refresh failed: ${error.message}`, 'danger');
+    }
+}
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📊 Dashboard initializing...');
+    
+    // Load overview charts with shorter delay (like individual pages)
+    setTimeout(() => {
+        console.log('🚀 Starting chart loading...');
+        loadOverviewChart('exchange-rates', 'exchange-overview-chart');
+        loadOverviewChart('inflation', 'inflation-overview-chart');
+        loadOverviewChart('interest-rates', 'interest-overview-chart');
+        
+        // Update summary cards and system status
+    updateSummaryCards();
+    updateSystemStatus();
+    }, 500);
+    
+    console.log('✅ Modern Dashboard initialization complete');
+});
+
+console.log('🏛️ ECB Financial Data Visualizer - Modern Dashboard Loaded');
+</script>
+{% endblock %}
