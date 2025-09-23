@@ -8,8 +8,8 @@ This guide will help you set up and run the ECB Financial Data Visualizer with s
 
 - **Python 3.13.7** installed on your system (https://www.python.org/downloads)
 - **Visual Studio Code** (https://code.visualstudio.com/)
-- **Git** (for repository cloning) - Ensure to login with your GitHub account matching the free trial of Copilot
-- **Github Copilot** (Free trial available for 30 days - https://github.com/features/copilot/plans?cft=copilot_li.features_copilot)
+- **Git** (for repository cloning) 
+- **Github Copilot Pro** - The Pro version is required in order to use GPT5 and Claude Sonnet 4 models.     
 
 ## Setup Instructions
 
