@@ -14,12 +14,6 @@ This guide will help you set up and run the ECB Financial Data Visualizer with s
 ## Setup Instructions
 
 ### Step 1: Clone the Repository
-macOS/Linux (bash):
-```bash
-git clone https://github.com/poligontech12/ECB---Financial-Data-Dashboard.git
-cd "ECB - Financial Data Visualizer"
-```
-
 Windows (PowerShell):
 ```powershell
 git clone https://github.com/poligontech12/ECB---Financial-Data-Dashboard.git
@@ -27,22 +21,12 @@ cd "ECB - Financial Data Visualizer"
 ```
 
 ### Step 2: Install Dependencies
-macOS/Linux (bash):
-```bash
-pip install -r requirements.txt
-```
-
 Windows (PowerShell):
 ```powershell
 py -m pip install -r requirements.txt
 ```
 
 ### Step 3: Run the Application
-macOS/Linux (bash):
-```bash
-python app.py
-```
-
 Windows (PowerShell):
 ```powershell
 py app.py
@@ -66,15 +50,6 @@ You should see output similar to:
 ## Troubleshooting
 
 ### Issue: Module Import Errors
-macOS/Linux (bash):
-```bash
-# Install missing dependencies
-pip install -r requirements.txt
-
-# Or install specific packages
-pip install flask plotly pandas sqlalchemy cryptography bcrypt pydantic
-```
-
 Windows (PowerShell):
 ```powershell
 # Install missing dependencies
@@ -85,12 +60,6 @@ py -m pip install flask plotly pandas sqlalchemy cryptography bcrypt pydantic
 ```
 
 ### Issue: Port 5000 Already in Use
-macOS/Linux (bash):
-```bash
-# Run on a different port
-python app.py --port 5001
-```
-
 Windows (PowerShell):
 ```powershell
 # Run on a different port
@@ -99,13 +68,6 @@ py app.py --port 5001
 Then access: `http://localhost:5001`
 
 ### Issue: Database Errors
-macOS/Linux (bash):
-```bash
-# Delete and recreate database
-rm -f data/database.db
-python app.py
-```
-
 Windows (PowerShell):
 ```powershell
 # Delete and recreate database
@@ -117,3 +79,7 @@ py app.py
 **Happy Coding!**
 
 *European Central Bank Financial Data Visualizer*
+
+---
+
+**Prepared by: Cosmin Irimia & Stefan Rusu**
