@@ -18,7 +18,7 @@ ECB_API_CONFIG = {
     "max_retries": 3,
     "retry_delay": 1,  # seconds
     "rate_limit_per_minute": 10,
-    "use_local_data": True,  # Switch to use local raw-data files instead of API
+    "use_local_data": False,  # Switch to use local raw-data files instead of API
     "local_data_dir": "data/raw-data"  # Directory containing downloaded XML files
 }
 
