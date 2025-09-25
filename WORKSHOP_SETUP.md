@@ -1,15 +1,13 @@
 # ECB Financial Data Visualizer - Workshop Setup Guide
 
-## Quick Start for Workshop Participants
-
-This guide will help you set up and run the ECB Financial Data Visualizer with secure PIN authentication.
-
 ## Prerequisites
 
 - **Python 3.13.7** installed on your system (https://www.python.org/downloads)
 - **Visual Studio Code** (https://code.visualstudio.com/)
 - **Git** (for repository cloning) 
-- **Github Copilot Pro** - The Pro version is required in order to use GPT5 and Claude Sonnet 4 models.     
+- **Github Copilot Pro** - The Pro version is required in order to use GPT5 and Claude Sonnet 4 models.
+
+**Note on Python Commands**: This guide uses `py` commands which work on most Windows systems. If `py` doesn't work on your system, replace `py` with `python` in all commands.     
 
 ## Setup Instructions
 
@@ -20,13 +18,67 @@ git clone https://github.com/poligontech12/ECB---Financial-Data-Dashboard.git
 cd "ECB - Financial Data Visualizer"
 ```
 
+**Alternative: Manual Download (if git clone is not working)**
+If the git clone command fails or you don't have Git installed:
+1. Go to the GitHub repository: https://github.com/poligontech12/ECB---Financial-Data-Dashboard
+2. Click the green **"Code"** button
+3. Select **"Download ZIP"**
+4. Extract the downloaded ZIP file to your desired location
+5. Open PowerShell and navigate to the extracted folder:
+```powershell
+cd "path\to\your\extracted\ECB---Financial-Data-Dashboard-main"
+```
+
 ### Step 2: Install Dependencies
 Windows (PowerShell):
 ```powershell
 py -m pip install -r requirements.txt
 ```
 
-### Step 3: Run the Application
+### Step 3: Configure Data Mode
+Before running the application, you need to configure it to use local data mode:
+
+Windows (PowerShell):
+```powershell
+py scripts/toggle_data_mode.py --mode local
+```
+
+You should see output similar to:
+```
+✅ Configuration updated: Data mode set to LOCAL
+
+📊 ECB Data Visualizer Status:
+   Current Mode: API
+   API Base URL: https://data-api.ecb.europa.eu/service 
+   API Timeout: 30 seconds
+
+💡 Tips for local mode:
+   - Make sure you have downloaded data files using:
+     python scripts/download_ecb_data.py
+   - Data files should be in: data/raw-data/
+   - Restart the application to apply changes
+```
+
+Verify the configuration by checking the status:
+```powershell
+py scripts/toggle_data_mode.py --status
+```
+
+Expected output:
+```
+📊 ECB Data Visualizer Status:
+   Current Mode: LOCAL
+   Local Data Directory: [Your Path]\data\raw-data
+   Available Data Files: 5 XML files, 5 metadata files
+   📁 Data Files:
+      - ECB_MAIN_RATE.xml (170,562 bytes)
+      - EUR_GBP_DAILY.xml (125,917 bytes)
+      - EUR_USD_DAILY.xml (121,446 bytes)
+      - EUR_USD_MONTHLY.xml (7,625 bytes)
+      - INFLATION_MONTHLY.xml (7,478 bytes)
+```
+
+### Step 4: Run the Application
 Windows (PowerShell):
 ```powershell
 py app.py
@@ -74,11 +126,6 @@ Windows (PowerShell):
 Remove-Item -LiteralPath "data/database.db" -Force -ErrorAction SilentlyContinue
 py app.py
 ```
-
-
-**Happy Coding!**
-
-*European Central Bank Financial Data Visualizer*
 
 ---
 

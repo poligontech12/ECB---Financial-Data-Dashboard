@@ -64,10 +64,13 @@ The application will be available at `http://localhost:5000`
 - ✅ **Phase 2**: ECB API Integration
   - SDMX 2.1 compliant API client
   - EUR/USD exchange rate data fetching
+  - EUR/GBP exchange rate data integration
   - Inflation (HICP) data integration
   - ECB interest rate data (Deposit Facility Rate)
   - SQLite database storage with intelligent caching
   - 12-month historical data optimization
+  - **Dual Data Source Support**: Online API + Offline local files
+  - **Corporate Network Support**: VPN/firewall-friendly local data mode
   - Error handling and recovery mechanisms
 
 - ✅ **Phase 3**: Interactive Visualizations
@@ -90,6 +93,9 @@ The application will be available at `http://localhost:5000`
 ```
 ecb-financial-visualizer/
 ├── app.py                         # Flask application entry point
+├── scripts/
+│   ├── download_ecb_data.py       # ECB data download utility
+│   └── toggle_data_mode.py        # Data source mode switcher
 ├── src/
 │   ├── api/
 │   │   ├── ecb_client.py          # ECB SDMX API client
@@ -118,6 +124,7 @@ ecb-financial-visualizer/
 │       └── ecb-theme.css          # Professional ECB styling
 ├── data/
 │   ├── cache/                     # Local JSON cache
+│   ├── raw-data/                  # Downloaded ECB XML files for offline mode
 │   ├── database.db               # SQLite database
 │   └── *.log                     # Application logs
 ├── docs/
@@ -155,16 +162,66 @@ The Flask application provides RESTful API endpoints:
 
 ## 📈 Data Sources
 
+The application supports two data source modes:
+
+### 🌐 Online Mode (Default)
 All data is sourced from the official European Central Bank API:
 - **API Base**: https://data-api.ecb.europa.eu/service
 - **Format**: SDMX 2.1 JSON (modern standard)
 - **Series**: 
   - **Exchange Rates (EXR)**: EUR/USD daily rates - `D.USD.EUR.SP00.A`
+  - **EUR/GBP Exchange Rates**: EUR/GBP daily rates - `D.GBP.EUR.SP00.A`
   - **Inflation (ICP)**: Harmonised Index of Consumer Prices - `M.U2.N.000000.4.ANR`
   - **Interest Rates (FM)**: ECB Deposit Facility Rate - `D.U2.EUR.4F.KR.DFR.LEV`
 - **Data Period**: 12 months of historical data by default
 - **Caching**: Local SQLite database for offline access and performance
 - **Update Frequency**: Real-time refresh capabilities with manual controls
+
+### 💾 Local Data Mode
+For environments without direct ECB API access (e.g., corporate networks, VPNs):
+- **Data Source**: Pre-downloaded XML files stored locally
+- **Storage Location**: `data/raw-data/` directory
+- **File Format**: ECB SDMX 2.1 XML format with metadata
+- **Offline Operation**: Full functionality without internet connectivity
+- **Data Freshness**: Based on download timestamp of local files
+
+### 🔄 Data Source Management
+
+#### Download ECB Data for Offline Use
+```bash
+# Download all financial indicators
+python scripts/download_ecb_data.py
+# Note: Use 'py' instead of 'python' on Windows if available
+
+# Download specific indicators
+python scripts/download_ecb_data.py --indicators EUR_USD_DAILY,EUR_GBP_DAILY
+
+# Download with custom date range
+python scripts/download_ecb_data.py --date-range 2020-01-01,2025-12-31
+
+# List available indicators
+python scripts/download_ecb_data.py --list-indicators
+```
+
+#### Toggle Between Data Modes
+```bash
+# Switch to local data mode (offline)
+python scripts/toggle_data_mode.py --mode local
+# Note: Use 'py' instead of 'python' on Windows if available
+
+# Switch to API mode (online) 
+python scripts/toggle_data_mode.py --mode api
+
+# Check current data mode status
+python scripts/toggle_data_mode.py --status
+```
+
+#### Data Mode Status
+The status command shows:
+- **Current Mode**: API or LOCAL
+- **API Configuration**: Base URL, timeout settings
+- **Local Data**: Available files, sizes, download timestamps
+- **Recommendations**: Next steps and troubleshooting tips
 
 ## 📈 Interactive Features
 
@@ -243,6 +300,11 @@ This project is for educational and personal use. Data is provided by the Europe
 3. **API connection issues**: 
    - Check internet connection and ECB API status
    - Verify ECB API endpoints: https://data-api.ecb.europa.eu/service
+   - **Corporate Network/VPN Issues**: Switch to local data mode:
+     ```bash
+     python scripts/download_ecb_data.py    # Download data first (use 'py' on Windows if available)
+     python scripts/toggle_data_mode.py --mode local    # Switch to offline mode
+     ```
    - Review logs in `data/` directory for detailed error information
 
 4. **Chart display issues**: 

@@ -19,6 +19,9 @@ You are tasked with **understanding, maintaining, and enhancing** the ECB Financ
 ```
 ecb-financial-visualizer/
 ├── app.py                         # Flask application entry point (CRITICAL)
+├── scripts/
+│   ├── download_ecb_data.py       # ECB data download utility for offline mode
+│   └── toggle_data_mode.py        # Data source mode switcher (API/Local)
 ├── src/
 │   ├── api/
 │   │   ├── ecb_client.py          # ECB SDMX API client with rate limiting
@@ -45,7 +48,8 @@ ecb-financial-visualizer/
 │   └── js/dashboard.js            # AJAX chart management
 └── data/
     ├── database.db               # SQLite persistence
-    └── cache/                    # JSON cache directory
+    ├── cache/                    # JSON cache directory
+    └── raw-data/                 # Downloaded ECB XML files for offline mode
 ```
 
 **Key Layers:**
@@ -65,9 +69,9 @@ ecb-financial-visualizer/
 
 ### Data Flow
 ```
-[ECB API] → [ECBClient] → [DataService] → [Database] → [ChartService] → [Flask API] → [Frontend]
-     ↓           ↓            ↓             ↓             ↓              ↓            ↓
-Rate Limiting → Parsing → Validation → Persistence → Chart Gen → JSON API → AJAX Updates
+[ECB API/Local Files] → [ECBClient] → [DataService] → [Database] → [ChartService] → [Flask API] → [Frontend]
+          ↓                  ↓            ↓             ↓             ↓              ↓            ↓
+   Rate Limiting/XML → Parsing/JSON → Validation → Persistence → Chart Gen → JSON API → AJAX Updates
 ```
 
 **Configuration Flow**: `config.py` → All modules reference centralized settings
@@ -179,6 +183,13 @@ except ECBAPIException as e:
 2. **ECB series configuration** in `src/utils/config.py` `ECB_SERIES_CONFIG`
 3. **Session-based logging** in `src/utils/logging_config.py` with UUID correlation
 4. **Database auto-initialization** in `src/database/database.py`
+
+### **Priority 5: Local Data Source Architecture**
+1. **Analyze dual data mode** in `src/api/ecb_client.py` - API vs local file switching logic
+2. **Study raw data handling** - XML parsing and JSON conversion for offline compatibility
+3. **Examine data management scripts** - `scripts/download_ecb_data.py` and `scripts/toggle_data_mode.py`
+4. **Review configuration switches** - `use_local_data` flag and `local_data_dir` settings
+5. **Test offline mode** - Data download → Mode toggle → Chart functionality verification
 
 ## **Success Criteria & Validation**
 
