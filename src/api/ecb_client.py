@@ -3,9 +3,12 @@ ECB API client for fetching financial data
 """
 import requests
 import time
+import json
+import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from urllib.parse import urljoin
+from pathlib import Path
 
 from utils.config import get_config
 from utils.logging_config import get_logger
@@ -45,6 +48,14 @@ class ECBClient:
         self.session = requests.Session()
         self.last_request_time = 0
         
+        # Local data configuration
+        self.use_local_data = self.api_config.get("use_local_data", False)
+        self.local_data_dir = Path(self.config["paths"]["project_root"]) / self.api_config.get("local_data_dir", "data/raw-data")
+        
+        logger.info(f"ECB Client initialized - Use local data: {self.use_local_data}")
+        if self.use_local_data:
+            logger.info(f"Local data directory: {self.local_data_dir}")
+        
         # Configure session
         self.session.headers.update({
             "User-Agent": "ECB-Financial-Visualizer/1.0",
@@ -64,11 +75,179 @@ class ECBClient:
         
         self.last_request_time = time.time()
     
+    def _load_local_data(self, series_name: str) -> Dict[str, Any]:
+        """Load data from local XML file"""
+        xml_file = self.local_data_dir / f"{series_name}.xml"
+        metadata_file = self.local_data_dir / f"{series_name}_metadata.json"
+        
+        if not xml_file.exists():
+            raise ECBAPIException(f"Local data file not found: {xml_file}")
+        
+        logger.info(f"Loading local data from: {xml_file}")
+        
+        try:
+            # Load metadata if available
+            metadata = {}
+            if metadata_file.exists():
+                with open(metadata_file, 'r') as f:
+                    metadata = json.load(f)
+                logger.info(f"Loaded metadata: download timestamp {metadata.get('download_timestamp', 'unknown')}")
+            
+            # Parse XML file
+            tree = ET.parse(xml_file)
+            root = tree.getroot()
+            
+            # Convert XML to a simplified JSON-like structure for compatibility
+            # This is a basic conversion - might need to be enhanced based on actual ECB XML structure
+            data = self._convert_xml_to_json(root, metadata)
+            
+            logger.info(f"Successfully loaded local data for {series_name}")
+            return data
+            
+        except Exception as e:
+            logger.error(f"Failed to load local data from {xml_file}: {e}")
+            raise ECBAPIException(f"Failed to load local data: {str(e)}")
+    
+    def _convert_xml_to_json(self, xml_root, metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert ECB XML response to JSON-like structure for compatibility with existing parsing"""
+        try:
+            # Extract series data from ECB SDMX XML
+            observations = []
+            
+            # Define XML namespaces used by ECB
+            namespaces = {
+                'generic': 'http://www.sdmx.org/resources/sdmxml/schemas/v2_1/data/generic',
+                'common': 'http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common',
+                'message': 'http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message'
+            }
+            
+            # Extract observations from ECB SDMX format
+            for obs in xml_root.findall('.//generic:Obs', namespaces):
+                obs_time = None
+                obs_value = None
+                
+                # Extract time dimension from ObsDimension
+                obs_dim = obs.find('./generic:ObsDimension', namespaces)
+                if obs_dim is not None:
+                    obs_time = obs_dim.get('value')
+                
+                # Extract observation value from ObsValue
+                obs_val = obs.find('./generic:ObsValue', namespaces)
+                if obs_val is not None:
+                    obs_value = obs_val.get('value')
+                
+                if obs_time and obs_value:
+                    try:
+                        observations.append({
+                            'time_period': obs_time,
+                            'value': float(obs_value)
+                        })
+                    except (ValueError, TypeError):
+                        logger.warning(f"Could not convert value to float: {obs_value}")
+                        observations.append({
+                            'time_period': obs_time,
+                            'value': None
+                        })
+            
+            logger.info(f"Extracted {len(observations)} observations from ECB XML")
+            
+            # If no observations found, try fallback parsing
+            if not observations:
+                logger.warning("No observations found with standard parsing, trying fallback")
+                for obs in xml_root.iter():
+                    if 'Obs' in obs.tag:
+                        # Check if this element has the data we need
+                        for child in obs:
+                            if 'ObsDimension' in child.tag:
+                                obs_time = child.get('value')
+                            elif 'ObsValue' in child.tag:
+                                obs_value = child.get('value')
+                        
+                        if obs_time and obs_value:
+                            try:
+                                observations.append({
+                                    'time_period': obs_time,
+                                    'value': float(obs_value)
+                                })
+                            except (ValueError, TypeError):
+                                observations.append({
+                                    'time_period': obs_time,
+                                    'value': None
+                                })
+            
+            # Create a JSON-like structure compatible with existing ECB client parsing
+            # This mimics the structure that the ECB API would return in JSON format
+            observations_dict = {}
+            time_values = []
+            
+            for i, obs in enumerate(observations):
+                observations_dict[str(i)] = [
+                    str(obs['value']) if obs['value'] is not None else None,
+                    None,  # Status (not used)
+                    None   # Confidence (not used)
+                ]
+                time_values.append({'id': obs['time_period']})
+            
+            result = {
+                'dataSets': [{
+                    'series': {
+                        '0': {
+                            'observations': observations_dict
+                        }
+                    }
+                }],
+                'structure': {
+                    'dimensions': {
+                        'observation': [{
+                            'id': 'TIME_PERIOD',
+                            'values': time_values
+                        }]
+                    }
+                },
+                '_metadata': metadata,
+                '_source': 'local_file',
+                '_observations_count': len(observations)
+            }
+            
+            logger.info(f"Converted XML to JSON structure with {len(observations)} observations")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to convert XML to JSON: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            # Return empty structure to avoid breaking the application
+            return {
+                'dataSets': [{'series': {'0': {'observations': {}}}}],
+                'structure': {'dimensions': {'observation': [{'id': 'TIME_PERIOD', 'values': []}]}},
+                '_metadata': metadata,
+                '_source': 'local_file_error',
+                '_error': str(e)
+            }
+    
+    def _find_series_name_by_config(self, series_config: dict) -> Optional[str]:
+        """Find the series name in config that matches the given series config"""
+        for name, config in self.series_config.items():
+            if (config.get('resource') == series_config.get('resource') and 
+                config.get('key') == series_config.get('key')):
+                return name
+        return None
+    
     def _make_request(self, series_config: dict, start_date: str = None, end_date: str = None, 
                      max_observations: int = None) -> Dict[str, Any]:
-        """Make request to ECB API with SDMX REST format"""
+        """Make request to ECB API with SDMX REST format or load from local files"""
         
-        # Apply rate limiting
+        # Check if we should use local data
+        if self.use_local_data:
+            series_name = self._find_series_name_by_config(series_config)
+            if series_name:
+                logger.info(f"Using local data for series: {series_name}")
+                return self._load_local_data(series_name)
+            else:
+                logger.warning(f"No matching series found in config for {series_config}, falling back to API")
+        
+        # Apply rate limiting for API requests
         self._rate_limit()
         
         # Build ECB SDMX REST URL: /data/{FLOW_ID}/{key} (not the complex SDMX format)

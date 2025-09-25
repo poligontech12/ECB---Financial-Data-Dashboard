@@ -17,7 +17,9 @@ ECB_API_CONFIG = {
     "timeout": 30,
     "max_retries": 3,
     "retry_delay": 1,  # seconds
-    "rate_limit_per_minute": 10
+    "rate_limit_per_minute": 10,
+    "use_local_data": False,  # Switch to use local raw-data files instead of API
+    "local_data_dir": "data/raw-data"  # Directory containing downloaded XML files
 }
 
 # ECB SDMX REST API Configuration (simplified ECB format)
@@ -37,6 +39,10 @@ ECB_SERIES_CONFIG = {
     "ECB_MAIN_RATE": {
         "resource": "FM",  # Financial Markets
         "key": "D.U2.EUR.4F.KR.DFR.LEV"  # Daily ECB deposit facility rate (original working configuration)
+    },
+    "EUR_GBP_DAILY": {
+        "resource": "EXR",  # Exchange Rates dataflow
+        "key": "D.GBP.EUR.SP00.A"  # Daily.GBP.EUR.Spot.Average
     },
     # Test configurations
     "EUR_USD_TEST1": {

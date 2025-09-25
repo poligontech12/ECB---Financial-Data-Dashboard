@@ -1,0 +1,29 @@
+{
+  "series_name": "EUR_USD_DAILY",
+  "resource": "EXR",
+  "key": "D.USD.EUR.SP00.A",
+  "download_timestamp": "2025-09-25T15:51:02.559918",
+  "api_url": "https://data-api.ecb.europa.eu/service/data/EXR/D.USD.EUR.SP00.A",
+  "parameters": {
+    "startPeriod": "2023-09-26",
+    "endPeriod": "2025-09-25"
+  },
+  "status_code": 200,
+  "content_length": 121446,
+  "content_type": "application/vnd.sdmx.genericdata+xml;version=2.1",
+  "response_headers": {
+    "Server": "myracloud",
+    "Date": "Thu, 25 Sep 2025 12:51:02 GMT",
+    "Content-Type": "application/vnd.sdmx.genericdata+xml;version=2.1",
+    "Transfer-Encoding": "chunked",
+    "Connection": "keep-alive",
+    "Vary": "accept",
+    "Content-Disposition": "attachment;filename=data.xml",
+    "Last-Modified": "Wed, 24 Sep 2025 13:56:56 GMT",
+    "Cache-Control": "max-age=30",
+    "X-Content-Type-Options": "nosniff",
+    "X-XSS-Protection": "0",
+    "X-Frame-Options": "DENY",
+    "Expires": "Thu, 25 Sep 2025 12:49:54 GMT"
+  }
+}

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?><message:GenericData xmlns:message="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message" xmlns:common="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:generic="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/data/generic" xsi:schemaLocation="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message http://data-api.ecb.europa.eu:80/vocabulary/sdmx/2_1/SDMXMessage.xsd http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common http://data-api.ecb.europa.eu:80/vocabulary/sdmx/2_1/SDMXCommon.xsd http://www.sdmx.org/resources/sdmxml/schemas/v2_1/data/generic http://data-api.ecb.europa.eu:80/vocabulary/sdmx/2_1/SDMXDataGeneric.xsd">
+<message:Header>
+<message:ID>a80c8b14-d981-49d3-abf2-f626a05ea631</message:ID>
+<message:Test>false</message:Test>
+<message:Prepared>2025-09-25T12:49:26.480+00:00</message:Prepared>
+<message:Sender id="ECB"/>
+<message:Structure structureID="ECB_ICP1" dimensionAtObservation="TIME_PERIOD">
+<common:Structure>
+<URN>urn:sdmx:org.sdmx.infomodel.datastructure.DataStructure=ECB:ECB_ICP1(1.0)</URN>
+</common:Structure>
+</message:Structure>
+</message:Header>
+<message:DataSet action="Replace" validFromDate="2025-09-25T12:49:26.480+00:00" structureRef="ECB_ICP1">
+<generic:Series>
+<generic:SeriesKey>
+<generic:Value id="FREQ" value="M"/>
+<generic:Value id="REF_AREA" value="U2"/>
+<generic:Value id="ADJUSTMENT" value="N"/>
+<generic:Value id="ICP_ITEM" value="000000"/>
+<generic:Value id="STS_INSTITUTION" value="4"/>
+<generic:Value id="ICP_SUFFIX" value="ANR"/>
+</generic:SeriesKey>
+<generic:Attributes>
+<generic:Value id="UNIT_MULT" value="0"/>
+<generic:Value id="TIME_FORMAT" value="P1M"/>
+<generic:Value id="UNIT" value="PCCH"/>
+<generic:Value id="COLLECTION" value="A"/>
+<generic:Value id="DECIMALS" value="1"/>
+<generic:Value id="TITLE_COMPL" value="Euro area (changing composition) - HICP - Overall index, Annual rate of change, Eurostat, Neither seasonally nor working day adjusted"/>
+<generic:Value id="TITLE" value="HICP - Overall index"/>
+<generic:Value id="DOM_SER_IDS" value="ICPT.M.VAL.HICP.RCH_A.EA.00.M"/>
+</generic:Attributes>
+<generic:Obs>
+<generic:ObsDimension value="2023-10"/>
+<generic:ObsValue value="2.9"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2023-11"/>
+<generic:ObsValue value="2.4"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2023-12"/>
+<generic:ObsValue value="2.9"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2024-01"/>
+<generic:ObsValue value="2.8"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2024-02"/>
+<generic:ObsValue value="2.6"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2024-03"/>
+<generic:ObsValue value="2.4"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2024-04"/>
+<generic:ObsValue value="2.4"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2024-05"/>
+<generic:ObsValue value="2.6"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2024-06"/>
+<generic:ObsValue value="2.5"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2024-07"/>
+<generic:ObsValue value="2.6"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2024-08"/>
+<generic:ObsValue value="2.2"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2024-09"/>
+<generic:ObsValue value="1.7"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2024-10"/>
+<generic:ObsValue value="2"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2024-11"/>
+<generic:ObsValue value="2.2"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2024-12"/>
+<generic:ObsValue value="2.4"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2025-01"/>
+<generic:ObsValue value="2.5"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2025-02"/>
+<generic:ObsValue value="2.3"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2025-03"/>
+<generic:ObsValue value="2.2"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2025-04"/>
+<generic:ObsValue value="2.2"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2025-05"/>
+<generic:ObsValue value="1.9"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2025-06"/>
+<generic:ObsValue value="2"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="E"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2025-07"/>
+<generic:ObsValue value="2"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+<generic:Obs>
+<generic:ObsDimension value="2025-08"/>
+<generic:ObsValue value="2"/>
+<generic:Attributes>
+<generic:Value id="OBS_STATUS" value="A"/>
+<generic:Value id="OBS_CONF" value="F"/>
+</generic:Attributes>
+</generic:Obs>
+</generic:Series>
+</message:DataSet>
+</message:GenericData>
